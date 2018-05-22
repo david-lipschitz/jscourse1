@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Asynchronous JavaScript</title>
+</head>
+<body>
+    <h1>Asynchronous JavaScript</h1>
+    <script>
+
+        //function in ES6 format without parameters, but the setTimeout function has two parameters, the first is the Callback function, and the second is how long it must wait before it runs, in this case 2 seconds. so we pass in callbacks that run once the function has finished its work
+        /*const second = () => {
+            setTimeout(() => {
+                console.log('Async Hey there');
+            }, 2000);
+        }
+
+        const first = () => {
+            console.log('Hey there');
+            second();
+            console.log('The end');
+        }
+
+        first();*/
+
+    
+        /*function getRecipe() {
+            setTimeout(() => {
+                //simulate the time it might take to get values from a server using an AJAX call
+                const recipeID = [523, 883, 432, 974];
+                console.log(recipeID);                
+
+                //now we want to do something with these recipes, so we need another setTimeOut: the id is the recipeID[2] in the third parameter of the setTimeOut. This timeout happens AFTER the first timeout ends
+                setTimeout((id) => {  // if only one parameter don't need the internal (), see next example
+                    const recipe = 
+                    {
+                        title: 'Fresh tomato pasta',
+                        publisher: 'Jonas'
+                    };
+                    console.log(`${id}: ${recipe.title}`); // remember that this is a new ES6 feature called a Template String enclosed in `` and then you can use ${} to get the variables
+
+                    setTimeout(publisher => { // or (publisher)
+                        const recipe2 =
+                        {
+                            title: 'Italian Pizza', 
+                            publisher: 'Jonas'
+                        };
+                        console.log(recipe2);
+                    }, 1500, recipe.publisher);
+
+                    // these timeouts inside each other for AJAX calls that must happen after each other is what is called "CALLBACK HELL", so this is fixed in ES6 with PROMISES
+
+                }, 1500, recipeID[2]);
+
+            }, 1500);
+        }
+        getRecipe();*/
+
+        //From Callback hell to Promises
+        
+        // a promise is an Object that keeps track about whether a certain (asynchronous, eg Timer or AJAX call) event has happened already or not; determines what happens after the event has happened; implements the concept of a future value that we're expecting
+
+        // States of the Promise
+        // Pending -> Event Happens -> Settled or Resolved -> FullFilled or Rejected
+        //  we consume promises after they are used
+        /* () => { } is the call back function, which is called the executor function, which takes in two arguments, the callback functions resolve and reject
+        const getIDs = new Promise( () => {
+
+        } );*/
+
+        /*const getIDs = new Promise((resolve, reject) => {
+            //to fake the AJAX call, we'll use setTimeOut
+            setTimeout( () => {
+                resolve([523, 883, 432, 974]); //showing the "then" call
+                //reject([523, 883, 432, 974]); //showing the "catch" call
+            }, 1500);
+        });
+
+        // so now we consume the Promise with then() and catch()
+        // getIDs.then ... or on two lines as below. This is called "CHAINING" the lines
+        getIDs
+        .then(IDs => { //IDs will be result of the successful promise
+            console.log(IDs);
+        })
+        .catch(error => { //error will never be called for a setTimeOut
+            console.log(error);
+        });*/
+
+        // a function in this format is done because it doesn't have prameters
+        /*const getIDs = new Promise((resolve, reject) => {
+            //to fake the AJAX call, we'll use setTimeOut
+            setTimeout( () => {
+                resolve([523, 883, 432, 974]); //showing the "then" call
+                //reject([523, 883, 432, 974]); //showing the "catch" call
+            }, 1500);
+        });
+
+        //create a function that receives the ID and returns a promise
+        const getRecipe = recId => {
+            return new Promise((resolve, reject) => {
+                setTimeout(ID => {
+                    const recipe = 
+                    {
+                        title: 'Fresh tomato pasta',
+                        publisher: 'Jonas'
+                    };
+                    resolve(`${ID}: ${recipe.title}`);
+                }, 1500, recId);
+            });
+        };
+
+        const getRelated = publisher => {
+            return new Promise((resolve, reject) => {
+                setTimeout(pub => {
+                    const recipe =
+                        {
+                            title: 'Italian Pizza', 
+                            publisher: 'Jonas'
+                        };
+                        resolve(`${pub}: ${recipe.title}`);
+                }, 1500, publisher);
+            });
+        };
+
+        /*getIDs
+        .then(IDs => { //IDs will be result of the successful promise
+            console.log('1: '+IDs);
+            //getRecipe(IDs[2]).then() is one way of doing this
+            //rather do chaining by simply adding a new then method
+            return getRecipe('2: '+IDs[2]); 
+        })
+        .then(recipe => {
+            console.log('3: '+recipe);
+            return getRelated('4: Jonas'); / *recipe.publisher* /
+        })
+        .then(recipe => {
+            console.log('5: '+recipe);
+        })
+        .catch(error => { //error will never be called for a setTimeOut
+            console.log('Error!!');
+        });*/
+
+        //most of the time we Consume promises instead of Produce them, and in ES8 (ES2017) we can use async functions
+        //  - error functions can be added
+        //    await can only be used inside an async function. The main code can never stop; async makes the function runs in the background
+        /*async function getRecipesAW() {
+            const IDs = await getIDs;
+            console.log(IDs);
+            const recipe = await getRecipe(IDs[2]);
+            console.log(recipe);
+            const related = await getRelated('4: Jonas');
+            console.log(related);
+        };
+        getRecipesAW();
+
+        async function getRecipesAW2() {
+            const IDs = await getIDs;
+            console.log(IDs);
+            const recipe = await getRecipe(IDs[2]);
+            console.log(recipe);
+            const related = await getRelated('4: Jonas');
+            console.log(related);
+
+            return recipe;
+        };
+        / *const rec = getRecipesAW2(); //this won't work because rec won't be defined because this line has completed, but remember that an async function returns a Promise
+        console.log(rec);* /
+        getRecipesAW2().then(result => console.log(`${result} is the best ever`));*/
+
+        //AJAX: Asynchronous JavaScript and XML
+        //http request : get post etc
+        // and APIs
+        //Making AJAX calls with Fetch and Promises
+        // to request some weather data from a Web API
+        // Fetch allows us to do AJAX in a simple way
+        // JSON is a string that we can convert to a JS object
+        ////fetch('https://www.metaweather.com/api/location/44418/'); //can't access because of different domain, so cross origin resources were created (CORS)
+        //so proxy or channel the request on our server, where the same origin policy doesn't exist, and we don't have our own service, but we can still use a server, called www.crossorigin.me
+        
+        //so as fetch returns a promise, we can use then and catch
+        //fetch('https://crossorigin.me/https://www.metaweather.com/api/location/44418/')
+
+        function getWeather(woeid) {
+            fetch(`https://cors-anywhere.herokuapp.com/https://www.metaweather.com/api/location/${woeid}/`)
+            .then(result => {
+                //console.log(result);
+                return result.json(); // it will return a promise
+            })
+            .then(data => {
+                //console.log(data);
+                const today = data.consolidated_weather[0];
+                console.log(`Temperatures today in ${data.title} stay between ${today.min_temp} and ${today.max_temp}.`);
+            })
+            .catch(error => console.log(error));
+        }
+        getWeather(44418); //London
+        getWeather(1591691); //Cape Town
+
+        //making AJAX calls with Async / Await
+
+        async function getWeatherAW(woeid) {
+            try {
+                const result = await fetch(`https://cors-anywhere.herokuapp.com/https://www.metaweather.com/api/location/${woeid}/`);
+                const data = await result.json();
+                //console.log(data);
+                const tomorrow = data.consolidated_weather[1];
+                    console.log(`Temperatures tomorrow in ${data.title} stay between ${tomorrow.min_temp} and ${tomorrow.max_temp}.`);
+                    return data;
+            } catch(error) {
+                console.log(error);
+            }
+        }
+        getWeatherAW(1591691);
+        let dataCT
+        getWeatherAW(1591691).then(data => {
+            dataCT = data;
+            console.log(dataCT);
+        });
+
+        // Big Project
+        // Modern JavaScript: using ES6, NPM, Babel and WebPack
+        // and use LocalStorage a cool JS API
+        
+        
+        
+
+
+    </script>
+</body>
+</html>
