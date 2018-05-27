@@ -36,8 +36,12 @@ getResults('pizza');
 
 import Search from './models/Search';
 import Recipe from './models/Recipe';
+import List from './models/List';
+import Likes from './models/Likes';
 import * as searchView from './views/searchView';
 import * as recipeView from './views/recipeView';
+import * as listView from './views/listView';
+import * as likesView from './views/likesView';
 import { elements, renderLoader, clearLoader } from './views/base';
 
 //global state of the app
@@ -46,6 +50,7 @@ import { elements, renderLoader, clearLoader } from './views/base';
 // Shopping List object
 // Liked Recipes
 const state = {}; // start with an empty object; and then later we can persist the object
+window.state = state; //this give us access in the console to see what's happening TESTING
 
 /**
  * SEARCH CONTROLLER 
@@ -136,6 +141,11 @@ const controlRecipe = async () => {
         recipeView.clearRecipe();
         renderLoader(elements.recipe); //pass in the parent so that the loader knows where to render itself
 
+        // Highlight selected search item
+        if (state.search) {
+            searchView.highlightSelected(id);
+        }
+
         // Create new recipe object based on the model in the last lecture and save in the state that we can access from anywhere
         state.recipe = new Recipe(id);
 
@@ -155,8 +165,12 @@ const controlRecipe = async () => {
             // Render recipe
             // console.log(state.recipe); // for testing
             clearLoader();
-            recipeView.renderRecipe(state.recipe);
+            recipeView.renderRecipe(
+                state.recipe,
+                state.likes.isLiked(id)
+            );
         } catch (err) {
+            console.log(err);
             alert('Error processing recipe!');
         }
     }
@@ -167,3 +181,140 @@ const controlRecipe = async () => {
 
 // put both of these into a single statement, bearing in mind that both call controlRecipe
 ['hashchange', 'load'].forEach(event => window.addEventListener(event, controlRecipe));
+
+/**
+ * LIST CONTROLLER 
+*/
+
+const controlList = () => {
+    // Create a new list IF there is none yet
+    if (!state.list) state.list = new List(); // initialise an empty object
+
+    // Add each ingredient to the list and UI
+    state.recipe.ingredients.forEach(el => { // el is one unit of the ingredients
+        const item = state.list.addItem(el.count, el.unit, el.ingredient);
+        // and add the item to the user interface
+        listView.renderItem(item);
+    });
+}
+
+// Handle delete and update list item events
+elements.shopping.addEventListener('click', e => {
+    const id = e.target.closest('.shopping__item').dataset.itemid;
+
+    // handle the delete event (button)
+    if (e.target.matches('.shopping__delete, .shopping__delete *')) {
+        // Delete from state
+        state.list.deleteItem(id);
+
+        // Delete from UI
+        listView.deleteItem(id);
+
+    // Handle the count update
+    } else if (e.target.matches('.shopping__count-value')) {
+        const val = parseFloat(e.target.value, 10); //target is our current element
+        state.list.updateCount(id, val);
+    };
+});
+
+/**
+ * LIKE CONTROLLER 
+*/
+//FOR TESTING, before "window.addEventListener('load', () => {"" existed
+//state.likes = new Likes();
+//likesView.toggleLikeMenu(state.likes.getNumLikes());
+
+const controlLike = () => {
+    //we need a new Likes object if it isn't there
+    if (!state.likes) state.likes = new Likes();
+    const currentID = state.recipe.id;
+
+    // User has NOT yet liked current recipe
+    if (!state.likes.isLiked(currentID)) {
+        // Add like to the state
+        //console.log(state.recipe);
+        const newLike = state.likes.addLike(
+            currentID,
+            state.recipe.title,
+            state.recipe.author,
+            state.recipe.img
+        );
+
+        // Toggle the like button
+        likesView.toggleLikeBtn(true);
+
+        // Add like to UI list
+        //console.log(state.likes); - during testing
+        likesView.renderLike(newLike);
+
+    // User HAS liked current recipe
+    } else {
+        // Remove like from the state
+        state.likes.deleteLike(currentID);
+
+        // Toggle the like button
+        likesView.toggleLikeBtn(false);
+
+        // Remove like from UI list
+        //console.log(state.likes); - during testing
+        likesView.deleteLike(currentID);
+    };
+    likesView.toggleLikeMenu(state.likes.getNumLikes());
+};
+
+// what we want to do each time the page loads
+// Restore liked recipes on page load
+window.addEventListener('load', () => {
+    state.likes = new Likes();
+
+    // Restore likes
+    state.likes.readStorage();
+
+    // Toggle the love button on the top right hand side of the screen, ie the like menu button
+    likesView.toggleLikeMenu(state.likes.getNumLikes());    
+
+    // Render all liked recipes in the menu
+    state.likes.likes.forEach(like => likesView.renderLike(like));
+});
+
+
+
+//  because we need to use the target property of the event
+// Handling receipe button clicks : deal with increasing and decreasing the servings
+elements.recipe.addEventListener('click', e => {
+    if (e.target.matches('.btn-decrease, .btn-decrease *')) { //btn-decrease or anything inside it
+        // Decrease button is clicked
+        if (state.recipe.servings > 1) {
+            state.recipe.updateServings('dec');
+            recipeView.updateServingsIngredients(state.recipe);
+        }
+    } else if (e.target.matches('.btn-increase, .btn-increase *')) { //btn-decrease or anything inside it
+        // Increase button is clicked
+        state.recipe.updateServings('inc');
+        recipeView.updateServingsIngredients(state.recipe);
+    } else if (e.target.matches('.recipe__btn--add, .recipe__btn--add *')) {
+        // call our control list function (controller)
+        // Add ingredients to shopping list
+        controlList();
+    } else if (e.target.matches('.recipe__love, .recipe__love *')) {
+        // call the like controller
+        controlLike();
+    };
+    //console.log(state.recipe);
+});
+
+// lecture 141: how and why to create uniqueIDs using an external package
+// difference between Array.slice and Array.splice
+// More uses cases for Array.findIndex and Array.find.
+//  See the List Model which uses https://github.com/adamhalasz/uniqid
+
+//Test out the new List() functionality
+//const l = new List();
+// THE MODELS ARE ALSO THE FOUNDATION OF APIs.
+window.l = new List();
+
+//lecture 147 : PERSISTING that data between sessions
+// how to use localStorageAPI
+//  allows us to save key,value pairs in the browser
+// use localStorage:. addey, getkey, removekey, length
+

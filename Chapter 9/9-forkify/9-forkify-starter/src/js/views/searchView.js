@@ -16,6 +16,19 @@ export const clearResults = () => {
     elements.searchResPages.innerHTML = '';
 }
 
+export const highlightSelected = id => {
+    //remove the existing highlights: create an array of all the results__link elements
+    const resultsArr = Array.from(document.querySelectorAll('.results__link'));
+    resultsArr.forEach(el => {
+        el.classList.remove('results__link--active');
+    });
+
+    //can't do it in base.cs because it isn't there when we load the program
+    //use css in the following: add the classname after selecting the element with querySelector
+    // we pass in the class name in the next line (without .), with the . it is the class selector
+    document.querySelector(`.results__link[href*="#${id}"]`).classList.add('results__link--active');
+};
+
 // 'Pasta with tomato and spinach' *1
 // what we want to do here is keep adding words to an empty string until we have less than or equal to "limit" characters and then put ... afterwards, so 'Pasta with tomato and spinach' becomes 'Pasta with tomato ...'
 /* acc = total accumulated characters
@@ -25,7 +38,7 @@ acc: 9  / acc + cur.length = 15 / newTitle = ['Pasta',with','tomato']
 acc: 15  / acc + cur.length = 18 / newTitle = ['Pasta',with','tomato']
 acc: 18  / acc + cur.length = 25 / newTitle = ['Pasta',with','tomato']
 */
-const limitRecipeTitle = (title, limit = 17) => { //17 is the default
+export const limitRecipeTitle = (title, limit = 17) => { //17 is the default
     const newTitle = []; // a new array; this can be a const, if it is empty and if we are only adding to it
     if (title.length > limit) {
         // instead of assigning title.split('') to a value and then applying reduce to that value, we do it in a single statement (powerful!!)

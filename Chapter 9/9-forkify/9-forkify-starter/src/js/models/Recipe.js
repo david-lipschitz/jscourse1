@@ -103,4 +103,17 @@ export default class Recipe {
         });
         this.ingredients = newIngredients;
     }
+
+    updateServings (type) {
+        // Update Servings in the Data Model
+        const newServings = type === 'dec' ? this.servings - 1 : this.servings + 1;
+
+        // Update Ingredients -- for each ingredient in the arry we will need to change the count
+        this.ingredients.forEach(ing => {
+            //ing.count = ing.count * (newServings / this.servings);
+            ing.count *= (newServings / this.servings); //this is a shorter way of writing the previous line
+        });
+
+        this.servings = newServings;
+    }
 }
